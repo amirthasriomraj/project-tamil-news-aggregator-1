@@ -33,7 +33,7 @@ def parse_date(text):
 
 
 class Command(BaseCommand):
-    help = "Crawl Hindu Tamil Latest News with Pagination"
+    help = "Crawl Hindu Tamil Tamilnadu with Pagination"
 
     def handle(self, *args, **kwargs):
         asyncio.run(self.crawl())
@@ -41,9 +41,9 @@ class Command(BaseCommand):
     async def crawl(self):
         website_name = "Hindu Tamil"
         website, _ = await sync_to_async(Websites.objects.get_or_create)(name=website_name)
-        category = "Latest News"
+        category = "Tamilnadu"
 
-        max_pages = 30
+        max_pages = 20
         page_count = 0
         total_articles = 0
 
@@ -54,8 +54,8 @@ class Command(BaseCommand):
             for page_num in range(1, max_pages + 1):
                 page_count += 1
 
-                url = "https://www.hindutamil.in/latest-news-tamil" if page_num == 1 \
-                    else f"https://www.hindutamil.in/latest-news-tamil/{page_num}"
+                url = "https://www.hindutamil.in/news/tamilnadu" if page_num == 1 \
+                    else f"https://www.hindutamil.in/news/tamilnadu/{page_num}"
 
                 print(f"\n📰 Scraping Page {page_count}: {url}")
                 await page.goto(url, timeout=60000)  # Increased timeout

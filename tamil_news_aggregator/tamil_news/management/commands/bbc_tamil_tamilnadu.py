@@ -4,46 +4,21 @@ from tamil_news.models import Websites, NewsDetails
 import asyncio
 from asgiref.sync import sync_to_async
 from datetime import datetime
-from django.utils import timezone
-
-
-def parse_date(text):
-    if not text:
-        return None
-
-    tamil_to_english_months = {
-        "ஜனவரி": "January", "பிப்ரவரி": "February", "மார்ச்": "March",
-        "ஏப்ரல்": "April", "மே": "May", "ஜூன்": "June", "ஜூலை": "July",
-        "ஆகஸ்ட்": "August", "செப்டம்பர்": "September", "அக்டோபர்": "October",
-        "நவம்பர்": "November", "டிசம்பர்": "December"
-    }
-
-    for tamil, eng in tamil_to_english_months.items():
-        text = text.replace(tamil, eng)
-
-    try:
-        naive_date = datetime.strptime(text.strip(), "%d %B, %Y")
-        return timezone.make_aware(naive_date)
-    except ValueError:
-        try:
-            naive_date = datetime.strptime(text.strip(), "%d %b, %Y")
-            return timezone.make_aware(naive_date)
-        except Exception:
-            return None
+import pytz
 
 
 class Command(BaseCommand):
-    help = "Crawl Hindu Tamil Latest News with Pagination"
+    help = "Crawl BBC Tamil Tamilnadu News with Pagination (Async + ORM Safe)"
 
     def handle(self, *args, **kwargs):
         asyncio.run(self.crawl())
 
     async def crawl(self):
-        website_name = "Hindu Tamil"
+        website_name = "BBC Tamil"
         website, _ = await sync_to_async(Websites.objects.get_or_create)(name=website_name)
-        category = "Latest News"
+        category = "Tamilnadu"
 
-        max_pages = 30
+        max_pages = 5
         page_count = 0
         total_articles = 0
 
@@ -54,13 +29,11 @@ class Command(BaseCommand):
             for page_num in range(1, max_pages + 1):
                 page_count += 1
 
-                url = "https://www.hindutamil.in/latest-news-tamil" if page_num == 1 \
-                    else f"https://www.hindutamil.in/latest-news-tamil/{page_num}"
+                url = f"https://www.bbc.com/tamil/topics/c6vzyv6g7yrt?page={page_num}"
+                print(f"\n🌏 Scraping Page {page_count}: {url}")
+                await page.goto(url, timeout=60000)
 
-                print(f"\n📰 Scraping Page {page_count}: {url}")
-                await page.goto(url, timeout=60000)  # Increased timeout
-
-                articles = await page.query_selector_all("div.card-outer._shareContainer")
+                articles = await page.query_selector_all("li.bbc-t44f9r")
                 num_articles = len(articles)
                 total_articles += num_articles
 
@@ -72,24 +45,28 @@ class Command(BaseCommand):
 
                 for article in articles:
                     try:
-                        title_el = await article.query_selector("p.card-text")
+                        title_el = await article.query_selector("h2")
                         title = (await title_el.inner_text()).strip() if title_el else "N/A"
 
-                        url_el = await article.query_selector("a[href]")
-                        url = await url_el.get_attribute("href") if url_el else ""
+                        link_el = await title_el.query_selector("a") if title_el else None
+                        url = await link_el.get_attribute("href") if link_el else None
                         if url and not url.startswith("http"):
-                            url = "https://www.hindutamil.in" + url
+                            url = "https://www.bbc.com" + url
 
                         image_el = await article.query_selector("img")
                         image_url = await image_el.get_attribute("src") if image_el else None
 
-                        author_tag = await article.query_selector(".card-bottom span")
-                        author = (await author_tag.inner_text()).strip() if author_tag else None
+                        time_el = await article.query_selector("time")
+                        time_text = await time_el.get_attribute("datetime") if time_el else None
 
-                        date_tag = await article.query_selector(".card-bottom .date")
-                        date_text = (await date_tag.inner_text()).strip() if date_tag else None
-
-                        published_time = parse_date(date_text) if date_text else None
+                        # ✅ Convert published time to timezone-aware datetime
+                        published_time = None
+                        if time_text:
+                            try:
+                                published_time = datetime.fromisoformat(time_text.replace("Z", "+00:00"))
+                                published_time = published_time.astimezone(pytz.UTC)
+                            except Exception:
+                                published_time = None
 
                         await sync_to_async(NewsDetails.objects.get_or_create)(
                             website=website,
@@ -100,7 +77,7 @@ class Command(BaseCommand):
                                 'image_url': image_url,
                                 'category': category,
                                 'published_time': published_time,
-                                'author': author,
+                                'author': None,
                                 'description': None,
                             }
                         )

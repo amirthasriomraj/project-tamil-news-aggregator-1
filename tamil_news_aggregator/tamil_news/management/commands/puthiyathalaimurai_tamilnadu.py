@@ -8,7 +8,7 @@ from django.utils import timezone
 
 
 class Command(BaseCommand):
-    help = "Crawl Puthiyathalaimurai Latest News"
+    help = "Crawl Puthiyathalaimurai Tamilnadu News"
 
     def handle(self, *args, **kwargs):
         asyncio.run(self.crawl())
@@ -16,7 +16,6 @@ class Command(BaseCommand):
     def parse_datetime(self, datetime_str):
         try:
             dt = datetime.fromisoformat(datetime_str.replace('Z', '')).replace(microsecond=0)
-            # ✅ Convert to timezone-aware datetime
             if timezone.is_naive(dt):
                 dt = timezone.make_aware(dt)
             return dt
@@ -26,16 +25,16 @@ class Command(BaseCommand):
     async def crawl(self):
         website_name = "Puthiyathalaimurai"
         website, _ = await sync_to_async(Websites.objects.get_or_create)(name=website_name)
-        category = "Latest News"
+        category = "Tamilnadu"
 
-        max_scrolls = 30
+        max_scrolls = 10
         scrolls_done = 0
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
 
-            url = "https://www.puthiyathalaimurai.com/collection/lastpublished"
+            url = "https://www.puthiyathalaimurai.com/tamilnadu"
             print(f"\n🌐 Opening {url}")
             await page.goto(url)
 
