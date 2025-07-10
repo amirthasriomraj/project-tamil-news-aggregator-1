@@ -9,6 +9,7 @@
 
 
 from django.db import models
+from django.utils import timezone
 
 
 class Websites(models.Model):
@@ -46,4 +47,23 @@ class NewsDetails(models.Model):
 
     def __str__(self):
         return self.title
+    
+
+class SentimentResults(models.Model):
+    news = models.OneToOneField(
+        NewsDetails,
+        on_delete=models.CASCADE,
+        related_name='sentiment'
+    )
+    sentiment_label = models.CharField(max_length=50)
+    sentiment_score = models.FloatField()
+    website_name = models.CharField(max_length=255, blank=True, null=True)
+    category = models.CharField(max_length=100, blank=True, null=True)
+    processed_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'sentiment_results'
+
+    def __str__(self):
+        return f"{self.news.title[:50]}... → {self.sentiment_label} ({self.sentiment_score})"
 
