@@ -6,7 +6,7 @@ __pycache__/
 *.sqlite3
 
 # Django
-db.sqlite3
+*.sqlite3
 *.log
 media/
 staticfiles/
@@ -22,6 +22,14 @@ venv/
 
 # macOS/Linux
 .DS_Store
+
+# Playwright
+**/.playwright/
+
+# Hugging Face Transformers
+~/.cache/huggingface/
+transformers_cache/
+*.bin
 
 # Others
 older-versions/
