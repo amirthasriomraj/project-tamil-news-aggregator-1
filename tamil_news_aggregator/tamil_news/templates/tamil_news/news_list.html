@@ -15,7 +15,6 @@
             margin: auto;
         }
 
-        /* Filters Styling */
         .filters {
             background: white;
             padding: 15px 20px;
@@ -64,7 +63,6 @@
             background-color: #0056b3;
         }
 
-        /* News Cards Styling */
         .news-card {
             background: white;
             padding: 15px;
@@ -95,7 +93,6 @@
             margin: 4px 0;
         }
 
-        /* Read More Button */
         .read-more {
             display: inline-block;
             margin-top: 6px;
@@ -107,7 +104,6 @@
             font-size: 13px;
         }
 
-        /* Pagination Styling */
         .pagination {
             margin: 20px 0;
             text-align: center;
@@ -159,6 +155,15 @@
                 </select>
             </label>
 
+            <label>Sentiment:
+                <select name="sentiment">
+                    <option value="">All</option>
+                    {% for s in sentiments %}
+                        <option value="{{ s }}" {% if s == sentiment_label %}selected{% endif %}>{{ s|title }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
             <label>Search:
                 <input type="text" name="search" value="{{ search_query }}">
             </label>
@@ -198,6 +203,13 @@
                         Not available
                     {% endif %}
                 </p>
+                <p><strong>Sentiment:</strong>
+                    {% if item.sentiment %}
+                        {{ item.sentiment.sentiment_label|title }}
+                    {% else %}
+                        Not available
+                    {% endif %}
+                </p>
                 <a class="read-more" href="{{ item.article_url }}" target="_blank">Read More</a>
             </div>
         </div>
@@ -208,13 +220,13 @@
     <!-- Pagination -->
     <div class="pagination">
         {% if news_list.has_previous %}
-            <a href="?{% if website_id %}website={{ website_id }}&{% endif %}{% if category %}category={{ category }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}&{% endif %}page={{ news_list.previous_page_number }}">Previous</a>
+            <a href="?{% if website_id %}website={{ website_id }}&{% endif %}{% if category %}category={{ category }}&{% endif %}{% if sentiment_label %}sentiment={{ sentiment_label }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}&{% endif %}page={{ news_list.previous_page_number }}">Previous</a>
         {% endif %}
 
         <span class="current">Page {{ news_list.number }} of {{ news_list.paginator.num_pages }}</span>
 
         {% if news_list.has_next %}
-            <a href="?{% if website_id %}website={{ website_id }}&{% endif %}{% if category %}category={{ category }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}&{% endif %}page={{ news_list.next_page_number }}">Next</a>
+            <a href="?{% if website_id %}website={{ website_id }}&{% endif %}{% if category %}category={{ category }}&{% endif %}{% if sentiment_label %}sentiment={{ sentiment_label }}&{% endif %}{% if search_query %}search={{ search_query }}&{% endif %}{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}&{% endif %}page={{ news_list.next_page_number }}">Next</a>
         {% endif %}
     </div>
 
