@@ -1,0 +1,25 @@
+2025-07-14 12:35:32,703 [INFO] \U0001f680 Starting Latest News Crawler Script
+2025-07-14 12:35:32,703 [INFO] \u25b6 Running: hindu_tamil_latest_news
+2025-07-14 12:39:32,586 [INFO] \u25b6 Running: puthiyathalaimurai_latest_news
+2025-07-14 12:43:14,557 [INFO] \u25b6 Running: news18_tamil_latest_news
+2025-07-14 12:44:06,447 [INFO] \u2705 Completed Latest news Crawl in 513 seconds
+2025-07-14 16:35:28,014 [INFO] \U0001f680 Starting Latest News Crawler Script
+2025-07-14 16:35:28,014 [INFO] \u25b6 Running: hindu_tamil_latest_news
+2025-07-14 16:38:44,568 [INFO] \u25b6 Running: puthiyathalaimurai_latest_news
+2025-07-14 16:42:04,659 [INFO] \u25b6 Running: news18_tamil_latest_news
+2025-07-14 16:42:48,679 [INFO] \u2705 Completed Latest news Crawl in 440 seconds
+2025-07-15 12:30:31,155 [INFO] \U0001f680 Starting Latest News Crawler Script
+2025-07-15 12:30:31,155 [INFO] \u25b6 Running: hindu_tamil_latest_news
+2025-07-15 12:33:50,738 [INFO] \u25b6 Running: puthiyathalaimurai_latest_news
+2025-07-15 12:37:03,768 [INFO] \u25b6 Running: news18_tamil_latest_news
+2025-07-15 12:37:49,024 [INFO] \u2705 Completed Latest news Crawl in 437 seconds
+2025-07-16 12:30:31,569 [INFO] \U0001f680 Starting Latest News Crawler Script
+2025-07-16 12:30:31,569 [INFO] \u25b6 Running: hindu_tamil_latest_news
+2025-07-16 12:33:41,676 [INFO] \u25b6 Running: puthiyathalaimurai_latest_news
+2025-07-16 12:37:05,901 [INFO] \u25b6 Running: news18_tamil_latest_news
+2025-07-16 12:37:51,373 [INFO] \u2705 Completed Latest news Crawl in 439 seconds
+2025-07-16 16:00:13,459 [INFO] \U0001f680 Starting Latest News Crawler Script
+2025-07-16 16:00:13,459 [INFO] \u25b6 Running: hindu_tamil_latest_news
+2025-07-16 16:03:46,733 [INFO] \u25b6 Running: puthiyathalaimurai_latest_news
+2025-07-16 16:06:51,671 [INFO] \u25b6 Running: news18_tamil_latest_news
+2025-07-16 16:07:35,850 [INFO] \u2705 Completed Latest news Crawl in 442 seconds

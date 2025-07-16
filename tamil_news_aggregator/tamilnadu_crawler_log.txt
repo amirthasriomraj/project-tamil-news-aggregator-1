@@ -1,0 +1,36 @@
+2025-07-14 12:35:32,922 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-14 12:35:32,922 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-14 12:38:10,514 [INFO] \u25b6 Running: bbc_tamil_tamilnadu_news
+2025-07-14 12:38:10,515 [ERROR] \u274c Error in bbc_tamil_tamilnadu_news: Unknown command: 'bbc_tamil_tamilnadu_news'
+2025-07-14 12:38:10,515 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-14 12:40:44,358 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-14 12:42:01,796 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-14 12:43:12,035 [INFO] \u2705 Completed Tamilnadu news Crawl in 459 seconds
+2025-07-14 16:35:28,171 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-14 16:35:28,171 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-14 16:37:43,185 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-14 16:38:07,276 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-14 16:40:35,319 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-14 16:41:41,842 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-14 16:42:31,741 [INFO] \u2705 Completed Tamilnadu news Crawl in 423 seconds
+2025-07-15 12:30:31,155 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-15 12:30:31,155 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-15 12:32:56,151 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-15 12:33:15,577 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-15 12:35:44,815 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-15 12:36:42,994 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-15 12:37:30,606 [INFO] \u2705 Completed Tamilnadu news Crawl in 419 seconds
+2025-07-16 12:30:31,569 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-16 12:30:31,569 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-16 12:32:44,999 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-16 12:33:05,218 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-16 12:35:29,611 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-16 12:36:28,178 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-16 12:37:24,212 [INFO] \u2705 Completed Tamilnadu news Crawl in 412 seconds
+2025-07-16 16:00:13,459 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-16 16:00:13,459 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-16 16:03:02,375 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-16 16:03:21,964 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-16 16:05:32,726 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-16 16:06:35,308 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-16 16:07:17,433 [INFO] \u2705 Completed Tamilnadu news Crawl in 423 seconds
