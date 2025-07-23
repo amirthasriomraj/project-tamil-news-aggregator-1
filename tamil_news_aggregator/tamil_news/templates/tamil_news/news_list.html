@@ -15,6 +15,7 @@
             margin: auto;
         }
 
+        .keyword-sentiment,
         .filters {
             background: white;
             padding: 15px 20px;
@@ -23,6 +24,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.08);
         }
 
+        .keyword-sentiment form,
         .filters form {
             display: flex;
             flex-wrap: wrap;
@@ -30,6 +32,7 @@
             align-items: center;
         }
 
+        .keyword-sentiment label,
         .filters label {
             display: flex;
             flex-direction: row;
@@ -40,6 +43,8 @@
             color: #333;
         }
 
+        .keyword-sentiment input,
+        .keyword-sentiment select,
         .filters select,
         .filters input[type="text"],
         .filters input[type="date"] {
@@ -49,6 +54,7 @@
             min-width: 130px;
         }
 
+        .keyword-sentiment button,
         .filters button {
             background-color: #007bff;
             color: white;
@@ -59,8 +65,17 @@
             transition: background-color 0.3s;
         }
 
+        .keyword-sentiment button:hover,
         .filters button:hover {
             background-color: #0056b3;
+        }
+
+        .sentiment-results {
+            margin-top: 15px;
+            background: #fff8dc;
+            border: 1px solid #f0e68c;
+            padding: 10px;
+            border-radius: 6px;
         }
 
         .news-card {
@@ -132,6 +147,31 @@
 
     <h1>Tamil News Aggregator</h1>
 
+    <!-- ✅ Keyword Sentiment Analysis -->
+    <div class="keyword-sentiment">
+        <form id="sentimentForm">
+            <label>Keyword:
+                <input type="text" name="keyword" required>
+            </label>
+            <label>Range:
+                <select name="range_type">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </label>
+            <label>From:
+                <input type="date" name="start_date">
+            </label>
+            <label>To:
+                <input type="date" name="end_date">
+            </label>
+            <button type="submit">Analyze</button>
+        </form>
+        <div id="sentimentResult" class="sentiment-results"></div>
+    </div>
+
     <!-- Filters -->
     <div class="filters">
         <form method="get">
@@ -177,9 +217,7 @@
             </label>
 
             <button type="submit">Apply</button>
-            <a href="{% url 'news_list' %}">
-                <button type="button">Reset</button>
-            </a>
+            <a href="{% url 'news_list' %}"><button type="button">Reset</button></a>
         </form>
     </div>
 
@@ -231,6 +269,40 @@
     </div>
 
 </div>
+
+<!-- AJAX Script to call keyword sentiment API -->
+<script>
+    document.getElementById('sentimentForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = new URLSearchParams(new FormData(form)).toString();
+        const resultDiv = document.getElementById('sentimentResult');
+        resultDiv.innerHTML = 'Loading...';
+
+        try {
+            const res = await fetch(`/api/keyword-sentiment/sentiment/?${data}`);
+            const json = await res.json();
+
+            if (json.error) {
+                resultDiv.innerHTML = `<p style="color:red">${json.error}</p>`;
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <h3>Sentiment Analysis for "${json.keyword}"</h3>
+                <p><strong>Time Range:</strong> ${json.time_range}</p>
+                <p><strong>Total Matches:</strong> ${json.total_matches}</p>
+                <p><strong>Average Score:</strong> ${json.average_score}</p>
+                <p><strong>Breakdown:</strong></p>
+                <ul>
+                    ${Object.entries(json.sentiment_breakdown).map(([label, count]) => `<li>${label}: ${count}</li>`).join('')}
+                </ul>
+            `;
+        } catch (err) {
+            resultDiv.innerHTML = '<p style="color:red">Error fetching sentiment data.</p>';
+        }
+    });
+</script>
 
 </body>
 </html>

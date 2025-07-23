@@ -34,3 +34,42 @@
 2025-07-16 16:05:32,726 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
 2025-07-16 16:06:35,308 [INFO] \u25b6 Running: news18_tamil_tamilnadu
 2025-07-16 16:07:17,433 [INFO] \u2705 Completed Tamilnadu news Crawl in 423 seconds
+2025-07-17 08:00:31,580 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-17 08:00:31,580 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-17 08:02:43,743 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-17 08:03:06,114 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-17 08:05:18,414 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-17 08:06:17,809 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-17 08:06:20,667 [INFO] \u2705 Completed Tamilnadu news Crawl in 349 seconds
+2025-07-17 12:00:31,984 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-17 12:00:31,984 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-17 12:02:46,391 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-17 12:03:04,186 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-17 12:05:08,436 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-17 12:05:39,415 [ERROR] \u274c Error in puthiyathalaimurai_tamilnadu: Page.goto: Timeout 30000ms exceeded.
+Call log:
+navigating to "https://www.puthiyathalaimurai.com/tamilnadu", waiting until "load"
+
+2025-07-17 12:05:39,416 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-17 12:05:42,127 [INFO] \u2705 Completed Tamilnadu news Crawl in 310 seconds
+2025-07-22 11:22:55,381 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-22 11:22:55,381 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-22 11:40:39,723 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-22 11:40:58,914 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-22 11:42:56,734 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-22 11:44:13,265 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-22 11:44:21,371 [INFO] \u2705 Completed Tamilnadu news Crawl in 1285 seconds
+2025-07-22 12:00:27,118 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-22 12:00:27,119 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-22 12:02:32,874 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-22 12:02:52,481 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-22 12:04:42,391 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-22 12:05:38,834 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-22 12:05:41,357 [INFO] \u2705 Completed Tamilnadu news Crawl in 314 seconds
+2025-07-22 16:00:10,038 [INFO] \U0001f680 Starting Tamilnadu news Crawler Script
+2025-07-22 16:00:10,038 [INFO] \u25b6 Running: hindu_tamil_tamilnadu
+2025-07-22 16:02:27,044 [INFO] \u25b6 Running: bbc_tamil_tamilnadu
+2025-07-22 16:02:49,006 [INFO] \u25b6 Running: dinathanthi_tamilnadu
+2025-07-22 16:04:51,701 [INFO] \u25b6 Running: puthiyathalaimurai_tamilnadu
+2025-07-22 16:06:01,632 [INFO] \u25b6 Running: news18_tamil_tamilnadu
+2025-07-22 16:06:07,559 [INFO] \u2705 Completed Tamilnadu news Crawl in 357 seconds

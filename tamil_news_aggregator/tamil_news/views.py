@@ -1,8 +1,13 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count, Avg
 from django.utils.dateparse import parse_date
-from rest_framework import viewsets, filters
+from datetime import datetime, timedelta
+
+from rest_framework import viewsets, filters, status
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
+from rest_framework.decorators import action
 
 from .models import NewsDetails, Websites, SentimentResults
 from .serializers import WebsiteSerializer, NewsDetailsSerializer
@@ -25,7 +30,64 @@ class NewsDetailsViewSet(viewsets.ModelViewSet):
     ordering_fields = ['published_time', 'id']
 
 
-# Frontend View
+# ✅ New API ViewSet for Keyword Sentiment
+class KeywordSentimentViewSet(viewsets.ViewSet):
+    def list(self, request):
+        return Response({
+            "message": "Use /api/keyword-sentiment/sentiment/?keyword=... to get sentiment scores."
+        })
+
+    @action(detail=False, methods=['get'], url_path='sentiment')
+    def sentiment(self, request):
+        keyword = request.GET.get('keyword')
+        range_type = request.GET.get('range_type')  # daily, weekly, monthly
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+
+        if not keyword:
+            return Response({"error": "Keyword is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        today = datetime.today().date()
+        if range_type == 'daily':
+            start = today
+            end = today
+        elif range_type == 'weekly':
+            start = today - timedelta(days=7)
+            end = today
+        elif range_type == 'monthly':
+            start = today - timedelta(days=30)
+            end = today
+        elif start_date and end_date:
+            start = parse_date(start_date)
+            end = parse_date(end_date)
+        else:
+            start = None
+            end = None
+
+        news_qs = NewsDetails.objects.filter(
+            Q(title__icontains=keyword) | Q(description__icontains=keyword)
+        )
+        if start and end:
+            news_qs = news_qs.filter(published_time__isnull=False)
+            news_qs = news_qs.filter(published_time__date__range=(start, end))
+
+        sentiments = SentimentResults.objects.filter(news__in=news_qs)
+
+        label_counts = sentiments.values('sentiment_label').annotate(count=Count('id'))
+        avg_score = sentiments.aggregate(avg=Avg('sentiment_score'))['avg'] or 0
+
+        response_data = {
+            "keyword": keyword,
+            "time_range": f"{start} to {end}" if start and end else "All time",
+            "sentiment_breakdown": {entry['sentiment_label']: entry['count'] for entry in label_counts},
+            "average_score": round(avg_score, 3),
+            "total_matches": sentiments.count()
+        }
+
+        return Response(response_data)
+
+
+# Frontend View for /news/
 def news_list(request):
     news = NewsDetails.objects.select_related("sentiment").order_by('-published_time', '-id')
     websites = Websites.objects.all()
