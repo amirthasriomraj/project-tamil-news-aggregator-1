@@ -6,18 +6,23 @@ from asgiref.sync import sync_to_async
 
 
 class Command(BaseCommand):
-    help = "Crawl News18 Tamil - Tamilnadu Category using pagination (Playwright)"
+    help = "Crawl News18 Tamil - Tamilnadu Category using pagination and keyword filter"
 
-    def handle(self, *args, **kwargs):
-        asyncio.run(self.crawl())
+    def add_arguments(self, parser):
+        parser.add_argument("--keyword", type=str, required=True, help="Keyword to filter Tamil news titles")
 
-    async def crawl(self):
+    def handle(self, *args, **options):
+        keyword = options["keyword"]
+        asyncio.run(self.crawl(keyword))
+
+    async def crawl(self, keyword):
         website_name = "News18 Tamil"
         website, _ = await sync_to_async(Websites.objects.get_or_create)(name=website_name)
         category = "Tamilnadu"
 
-        max_pages = 10
+        max_pages = 25
         total_articles = 0
+        total_matching = 0
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
@@ -32,7 +37,6 @@ class Command(BaseCommand):
                 print(f"\n🌐 Scraping Page {page_num}: {url}")
                 await page.goto(url, timeout=60000)
 
-                # Select all article cards
                 news_items = await page.query_selector_all("li.jsx-d0e08582aab1ee73")
                 print(f"🔎 Found {len(news_items)} articles on page {page_num}")
 
@@ -42,21 +46,21 @@ class Command(BaseCommand):
 
                 for item in news_items:
                     try:
+                        # Title
+                        title_el = await item.query_selector("figcaption")
+                        title = (await title_el.inner_text()).strip() if title_el else None
+
+                        if not title or keyword not in title:
+                            continue
+
                         # URL
                         link_el = await item.query_selector("a[href]")
                         relative_url = await link_el.get_attribute("href") if link_el else None
                         full_url = f"https://tamil.news18.com{relative_url}" if relative_url else None
 
-                        # Title
-                        title_el = await item.query_selector("figcaption")
-                        title = (await title_el.inner_text()).strip() if title_el else None
-
                         # Image
                         img_el = await item.query_selector("img")
                         image_url = await img_el.get_attribute("src") if img_el else None
-
-                        if not title or not full_url:
-                            continue
 
                         await sync_to_async(NewsDetails.objects.get_or_create)(
                             website=website,
@@ -72,13 +76,15 @@ class Command(BaseCommand):
                             }
                         )
                         print(f"✅ {title}")
-                        total_articles += 1
+                        total_matching += 1
 
                     except Exception as e:
                         print(f"❌ Error parsing article: {e}")
 
+                total_articles += len(news_items)
+
             await browser.close()
 
         print(
-            f"\n✅ Crawling Finished.\nTotal Pages Crawled: {max_pages}\nTotal Articles Found: {total_articles}"
+            f"\n✅ Crawling Finished.\nTotal Pages Crawled: {max_pages}\nTotal Articles Found: {total_articles}\n✅ Total Articles Crawled (Matching Keyword): {total_matching}"
         )

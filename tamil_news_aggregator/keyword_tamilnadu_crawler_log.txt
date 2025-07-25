@@ -1,0 +1,14 @@
+2025-07-25 16:31:06,855 [INFO] \U0001f680 Starting ALL Tamilnadu keyword crawlers
+2025-07-25 16:31:06,855 [INFO] 
+\U0001f4cc Processing keyword: \u0bb8\u0bcd\u0b9f\u0bbe\u0bb2\u0bbf\u0ba9\u0bcd
+2025-07-25 16:31:06,855 [INFO] \u25b6 Running: key_hindu_tamil_tamilnadu for keyword '\u0bb8\u0bcd\u0b9f\u0bbe\u0bb2\u0bbf\u0ba9\u0bcd'
+2025-07-25 16:33:11,115 [INFO] \u25b6 Running: key_bbc_tamil_tamilnadu for keyword '\u0bb8\u0bcd\u0b9f\u0bbe\u0bb2\u0bbf\u0ba9\u0bcd'
+2025-07-25 16:33:32,191 [INFO] \u25b6 Running: key_dinathanthi_tamilnadu for keyword '\u0bb8\u0bcd\u0b9f\u0bbe\u0bb2\u0bbf\u0ba9\u0bcd'
+2025-07-25 16:34:58,666 [INFO] \u25b6 Running: key_puthiyathalaimurai_tamilnadu for keyword '\u0bb8\u0bcd\u0b9f\u0bbe\u0bb2\u0bbf\u0ba9\u0bcd'
+2025-07-25 16:35:47,745 [INFO] \u25b6 Running: key_news18_tamil_tamilnadu for keyword '\u0bb8\u0bcd\u0b9f\u0bbe\u0bb2\u0bbf\u0ba9\u0bcd'
+2025-07-25 16:36:18,159 [INFO] 
+\U0001f4cc Processing keyword: \u0b9a\u0bc0\u0bae\u0bbe\u0ba9\u0bcd
+2025-07-25 16:36:18,159 [INFO] \u25b6 Running: key_hindu_tamil_tamilnadu for keyword '\u0b9a\u0bc0\u0bae\u0bbe\u0ba9\u0bcd'
+2025-07-25 16:38:29,670 [INFO] \u25b6 Running: key_bbc_tamil_tamilnadu for keyword '\u0b9a\u0bc0\u0bae\u0bbe\u0ba9\u0bcd'
+2025-07-25 16:38:51,085 [INFO] \u25b6 Running: key_dinathanthi_tamilnadu for keyword '\u0b9a\u0bc0\u0bae\u0bbe\u0ba9\u0bcd'
+2025-07-25 16:40:03,643 [INFO] \u25b6 Running: key_puthiyathalaimurai_tamilnadu for keyword '\u0b9a\u0bc0\u0bae\u0bbe\u0ba9\u0bcd'
