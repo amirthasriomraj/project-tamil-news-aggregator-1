@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from playwright.async_api import async_playwright
-from tamil_news.models import Websites, NewsDetails
+from tamil_news.models import Websites, NewsDetails, Keyword
 import asyncio
 from asgiref.sync import sync_to_async
 from datetime import datetime
@@ -33,24 +33,22 @@ def parse_date(text):
 
 
 class Command(BaseCommand):
-    help = "Crawl Hindu Tamil Tamilnadu articles that match a given keyword"
-
-    def add_arguments(self, parser):
-        parser.add_argument('--keyword', type=str, help='Keyword to filter articles by (Tamil supported)')
+    help = "Crawl Hindu Tamil Tamilnadu articles and match with keywords from DB"
 
     def handle(self, *args, **options):
-        keyword = options.get('keyword')
-        asyncio.run(self.crawl(keyword))
+        asyncio.run(self.crawl())
 
-    async def crawl(self, keyword=None):
+    async def crawl(self):
         website_name = "Hindu Tamil"
-        website, _ = await sync_to_async(Websites.objects.get_or_create)(name=website_name)
         category = "Tamilnadu"
 
-        max_pages = 50
+        website, _ = await sync_to_async(Websites.objects.get_or_create)(name=website_name)
+        keywords = await sync_to_async(list)(Keyword.objects.values_list("name", flat=True))
+
+        max_pages = 5
         page_count = 0
         total_articles = 0
-        crawled_articles = 0  # ✅ Keyword-matched and saved
+        crawled_articles = 0
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
@@ -71,17 +69,12 @@ class Command(BaseCommand):
                 print(f"Found {num_articles} articles on Page {page_count}")
 
                 if num_articles == 0:
-                    print("✅ No more articles found. Stopping.")
                     break
 
                 for article in articles:
                     try:
                         title_el = await article.query_selector("p.card-text")
                         title = (await title_el.inner_text()).strip() if title_el else "N/A"
-
-                        # ✅ Skip articles that don't match the keyword
-                        if keyword and keyword not in title:
-                            continue
 
                         url_el = await article.query_selector("a[href]")
                         url = await url_el.get_attribute("href") if url_el else ""
@@ -99,7 +92,24 @@ class Command(BaseCommand):
 
                         published_time = parse_date(date_text) if date_text else None
 
-                        await sync_to_async(NewsDetails.objects.get_or_create)(
+                        # ✅ Open article URL to extract full description
+                        article_page = await browser.new_page()
+                        await article_page.goto(url, timeout=60000)
+
+                        desc_elements = await article_page.query_selector_all("div#pgContentPrint p")
+                        description_parts = [await el.inner_text() for el in desc_elements if await el.inner_text()]
+                        description = "\n".join([text.strip() for text in description_parts]).strip()
+                        await article_page.close()
+
+                        if not description:
+                            continue
+
+                        # ✅ Match keywords
+                        matched_keywords = [kw for kw in keywords if kw in title or kw in description]
+                        if not matched_keywords:
+                            continue
+
+                        news_obj, created = await sync_to_async(NewsDetails.objects.get_or_create)(
                             website=website,
                             title=title,
                             article_url=url,
@@ -109,14 +119,20 @@ class Command(BaseCommand):
                                 'category': category,
                                 'published_time': published_time,
                                 'author': author,
-                                'description': None,
+                                'description': description,
                             }
                         )
+
+                        # ✅ Link matched keywords
+                        for kw in matched_keywords:
+                            keyword_obj = await sync_to_async(Keyword.objects.get)(name=kw)
+                            await sync_to_async(news_obj.keywords.add)(keyword_obj)
+
                         crawled_articles += 1
                         print(f"✅ {title}")
 
                     except Exception as e:
-                        print(f"❌ Error parsing article: {e}")
+                        print(f"❌ Error: {e}")
 
             await browser.close()
 

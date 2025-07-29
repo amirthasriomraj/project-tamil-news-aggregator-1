@@ -3,17 +3,20 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Count, Avg
 from django.utils.dateparse import parse_date
 from datetime import datetime, timedelta
+import subprocess
+import json
 
 from rest_framework import viewsets, filters, status
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 
 from .models import NewsDetails, Websites, SentimentResults
 from .serializers import WebsiteSerializer, NewsDetailsSerializer
 
 
-# DRF API Views
 class WebsiteViewSet(viewsets.ModelViewSet):
     queryset = Websites.objects.all()
     serializer_class = WebsiteSerializer
@@ -30,7 +33,6 @@ class NewsDetailsViewSet(viewsets.ModelViewSet):
     ordering_fields = ['published_time', 'id']
 
 
-# ✅ New API ViewSet for Keyword Sentiment
 class KeywordSentimentViewSet(viewsets.ViewSet):
     def list(self, request):
         return Response({
@@ -40,7 +42,7 @@ class KeywordSentimentViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path='sentiment')
     def sentiment(self, request):
         keyword = request.GET.get('keyword')
-        range_type = request.GET.get('range_type')  # daily, weekly, monthly
+        range_type = request.GET.get('range_type')
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
 
@@ -72,7 +74,6 @@ class KeywordSentimentViewSet(viewsets.ViewSet):
             news_qs = news_qs.filter(published_time__date__range=(start, end))
 
         sentiments = SentimentResults.objects.filter(news__in=news_qs)
-
         label_counts = sentiments.values('sentiment_label').annotate(count=Count('id'))
         avg_score = sentiments.aggregate(avg=Avg('sentiment_score'))['avg'] or 0
 
@@ -83,11 +84,30 @@ class KeywordSentimentViewSet(viewsets.ViewSet):
             "average_score": round(avg_score, 3),
             "total_matches": sentiments.count()
         }
-
         return Response(response_data)
 
 
-# Frontend View for /news/
+class CrawlKeywordTriggerView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        data = request.data
+        keywords = data.get("keywords", [])
+        if not isinstance(keywords, list) or not keywords:
+            return Response({"error": "Please provide a non-empty list of keywords."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            subprocess.Popen(
+                ['python', 'manage.py', 'crawl_key_tamilnadu_logging', json.dumps(keywords)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            return Response({"status": "Crawling triggered successfully."})
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+
 def news_list(request):
     news = NewsDetails.objects.select_related("sentiment").order_by('-published_time', '-id')
     websites = Websites.objects.all()
@@ -101,20 +121,16 @@ def news_list(request):
 
     if website_id:
         news = news.filter(website_id=website_id)
-
     if category:
         news = news.filter(category__icontains=category)
-
     if sentiment_label:
         news = news.filter(sentiment__sentiment_label=sentiment_label)
-
     if search_query and search_query.lower() != 'none':
         news = news.filter(
             Q(title__icontains=search_query) |
             Q(description__icontains=search_query) |
             Q(author__icontains=search_query)
         )
-
     if start_date and end_date:
         start = parse_date(start_date)
         end = parse_date(end_date)

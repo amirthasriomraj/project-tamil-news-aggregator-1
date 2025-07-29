@@ -1,10 +1,10 @@
-import asyncio
 import logging
+import json
+import sys
 from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
 
-# 🔧 Setup Logging
 LOG_FILE = "keyword_tamilnadu_crawler_log.txt"
 logging.basicConfig(
     filename=LOG_FILE,
@@ -13,10 +13,17 @@ logging.basicConfig(
 )
 
 class Command(BaseCommand):
-    help = "Run all Tamilnadu keyword-based news crawlers for a list of Tamil keywords"
+    help = "Run all Tamilnadu keyword-based news crawlers for a list of keywords via JSON argument"
+
+    def add_arguments(self, parser):
+        parser.add_argument('keywords_json', type=str, help="JSON list of Tamil keywords")
 
     def handle(self, *args, **options):
-        keywords = ["ஸ்டாலின்", "சீமான்", "தவெக", "அதிமுக", "திமுக"]  # ✅ Update as needed
+        try:
+            keywords = json.loads(options['keywords_json'])
+        except Exception as e:
+            self.stderr.write(self.style.ERROR(f"Invalid JSON input: {e}"))
+            return
 
         logging.info("🚀 Starting ALL Tamilnadu keyword crawlers")
         start_time = datetime.now()
@@ -25,12 +32,10 @@ class Command(BaseCommand):
             for keyword in keywords:
                 logging.info(f"\n📌 Processing keyword: {keyword}")
                 self.run_keyword_crawlers(keyword)
-
         except Exception as e:
             logging.error(f"❌ Unexpected error during combined keyword crawl: {str(e)}")
 
-        end_time = datetime.now()
-        duration = (end_time - start_time).seconds
+        duration = (datetime.now() - start_time).seconds
         logging.info(f"\n✅ Completed all keyword crawlers in {duration} seconds")
 
     def run_keyword_crawlers(self, keyword):
