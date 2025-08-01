@@ -45,7 +45,7 @@ class Command(BaseCommand):
         website, _ = await sync_to_async(Websites.objects.get_or_create)(name=website_name)
         keywords = await sync_to_async(list)(Keyword.objects.values_list("name", flat=True))
 
-        max_pages = 5
+        max_pages = 3
         page_count = 0
         total_articles = 0
         crawled_articles = 0

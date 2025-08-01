@@ -2,19 +2,39 @@ from django.shortcuts import render
 from django.core.paginator import Paginator
 from django.db.models import Q, Count, Avg
 from django.utils.dateparse import parse_date
-from datetime import datetime, timedelta
+from datetime import timedelta, date
 import subprocess
 import json
 
 from rest_framework import viewsets, filters, status
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet
-from rest_framework.decorators import action, api_view
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from rest_framework.decorators import action
 
-from .models import NewsDetails, Websites, SentimentResults
-from .serializers import WebsiteSerializer, NewsDetailsSerializer
+from .serializers import (
+    WebsiteSerializer,
+    NewsDetailsSerializer,
+    KeywordSerializer,
+    SentimentResultsSerializer
+)
+from .models import NewsDetails, Websites, SentimentResults, Keyword
+
+
+class KeywordsViewSet(viewsets.ModelViewSet):
+    queryset = Keyword.objects.all()
+    serializer_class = KeywordSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name']
+    ordering_fields = ['id', 'name']
+
+
+class SentimentResultsViewSet(viewsets.ModelViewSet):
+    queryset = SentimentResults.objects.all()
+    serializer_class = SentimentResultsSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['sentiment_label', 'news__title', 'news__description']
+    ordering_fields = ['processed_at', 'positive_score', 'negative_score', 'neutral_score']
 
 
 class WebsiteViewSet(viewsets.ModelViewSet):
@@ -34,57 +54,71 @@ class NewsDetailsViewSet(viewsets.ModelViewSet):
 
 
 class KeywordSentimentViewSet(viewsets.ViewSet):
-    def list(self, request):
+    permission_classes = [AllowAny]
+
+    @action(detail=False, methods=["get"])
+    def sentiment(self, request):
+        keyword_name = request.query_params.get("keyword")
+        range_type = request.query_params.get("range_type", "daily")  # daily, weekly, monthly
+        website = request.query_params.get("website")
+        category = request.query_params.get("category")
+
+        if not keyword_name:
+            return Response({"error": "Missing 'keyword' parameter."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            keyword = Keyword.objects.get(name=keyword_name)
+        except Keyword.DoesNotExist:
+            return Response({"error": f"Keyword '{keyword_name}' not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        today = date.today()
+
+        # Define date range
+        if range_type == "daily":
+            start_date = today
+        elif range_type == "weekly":
+            start_date = today - timedelta(days=7)
+        elif range_type == "monthly":
+            start_date = today - timedelta(days=30)
+        else:
+            return Response({"error": "Invalid 'range_type'. Use 'daily', 'weekly', or 'monthly'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Base queryset
+        sentiment_qs = SentimentResults.objects.filter(
+            keyword=keyword,
+            news__published_time__date__gte=start_date
+        )
+
+        # Apply filters using AND logic
+        if website:
+            sentiment_qs = sentiment_qs.filter(news__website__name__iexact=website)
+
+        if category:
+            sentiment_qs = sentiment_qs.filter(news__category__iexact=category)
+
+        aggregate = sentiment_qs.aggregate(
+            avg_positive=Avg("positive_score"),
+            avg_negative=Avg("negative_score"),
+            avg_neutral=Avg("neutral_score"),
+            match_count=Count("id")
+        )
+
         return Response({
-            "message": "Use /api/keyword-sentiment/sentiment/?keyword=... to get sentiment scores."
+            "keyword": keyword.name,
+            "range_type": range_type,
+            "start_date": start_date,
+            "end_date": today,
+            "avg_positive_score": round(aggregate["avg_positive"] or 0, 4),
+            "avg_negative_score": round(aggregate["avg_negative"] or 0, 4),
+            "avg_neutral_score": round(aggregate["avg_neutral"] or 0, 4),
+            "match_count": aggregate["match_count"],
+            "filtered_by": {
+                "website": website or "N/A",
+                "category": category or "N/A"
+            }
         })
 
-    @action(detail=False, methods=['get'], url_path='sentiment')
-    def sentiment(self, request):
-        keyword = request.GET.get('keyword')
-        range_type = request.GET.get('range_type')
-        start_date = request.GET.get('start_date')
-        end_date = request.GET.get('end_date')
-
-        if not keyword:
-            return Response({"error": "Keyword is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        today = datetime.today().date()
-        if range_type == 'daily':
-            start = today
-            end = today
-        elif range_type == 'weekly':
-            start = today - timedelta(days=7)
-            end = today
-        elif range_type == 'monthly':
-            start = today - timedelta(days=30)
-            end = today
-        elif start_date and end_date:
-            start = parse_date(start_date)
-            end = parse_date(end_date)
-        else:
-            start = None
-            end = None
-
-        news_qs = NewsDetails.objects.filter(
-            Q(title__icontains=keyword) | Q(description__icontains=keyword)
-        )
-        if start and end:
-            news_qs = news_qs.filter(published_time__isnull=False)
-            news_qs = news_qs.filter(published_time__date__range=(start, end))
-
-        sentiments = SentimentResults.objects.filter(news__in=news_qs)
-        label_counts = sentiments.values('sentiment_label').annotate(count=Count('id'))
-        avg_score = sentiments.aggregate(avg=Avg('sentiment_score'))['avg'] or 0
-
-        response_data = {
-            "keyword": keyword,
-            "time_range": f"{start} to {end}" if start and end else "All time",
-            "sentiment_breakdown": {entry['sentiment_label']: entry['count'] for entry in label_counts},
-            "average_score": round(avg_score, 3),
-            "total_matches": sentiments.count()
-        }
-        return Response(response_data)
 
 
 class CrawlKeywordTriggerView(APIView):

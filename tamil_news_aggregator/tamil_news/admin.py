@@ -28,4 +28,3 @@ class SentimentResultsAdmin(admin.ModelAdmin):
     ordering = ('-processed_at',)
     date_hierarchy = 'processed_at'
     list_per_page = 25
-

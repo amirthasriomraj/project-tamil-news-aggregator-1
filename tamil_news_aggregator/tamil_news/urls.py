@@ -1,14 +1,24 @@
 from django.urls import path, include
-from rest_framework import routers
-from tamil_news import views
+from rest_framework.routers import DefaultRouter
+from .views import (
+    WebsiteViewSet,
+    NewsDetailsViewSet,
+    KeywordsViewSet,
+    SentimentResultsViewSet,
+    KeywordSentimentViewSet,
+    CrawlKeywordTriggerView,
+    news_list
+)
 
-router = routers.DefaultRouter()
-router.register(r'websites', views.WebsiteViewSet)
-router.register(r'news', views.NewsDetailsViewSet)
-router.register(r'keyword-sentiment', views.KeywordSentimentViewSet, basename='keyword-sentiment')
+router = DefaultRouter()
+router.register(r'websites', WebsiteViewSet)
+router.register(r'news', NewsDetailsViewSet)
+router.register(r'keywords', KeywordsViewSet)
+router.register(r'sentiment-results', SentimentResultsViewSet)
+router.register(r'keyword-sentiment', KeywordSentimentViewSet, basename='keyword-sentiment')
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/trigger-keyword-crawl/', views.CrawlKeywordTriggerView.as_view(), name='trigger-keyword-crawl'),
-    path('news/', views.news_list, name='news-list'),
+    path('api/trigger-crawl/', CrawlKeywordTriggerView.as_view(), name='trigger-crawl'),
+    path('news/', news_list, name='news_list'),
 ]

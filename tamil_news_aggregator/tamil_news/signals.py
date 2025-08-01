@@ -1,28 +1,22 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils import timezone
-from tamil_news.models import NewsDetails, SentimentResults, Keyword
+from tamil_news.models import NewsDetails, Keyword, SentimentResults
 from transformers import pipeline
+from django.utils import timezone
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import numpy as np
 
-import re
+# Load model and tokenizer
+MODEL_NAME = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
+labels = ['negative', 'neutral', 'positive']
 
-# Load sentiment analysis model
-model_name = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
-sentiment_pipeline = pipeline("sentiment-analysis", model=model_name)
-
-# Sentence extractor: Extracts 1 sentence before and after the matched keyword sentence
-def extract_relevant_sentences(text: str, keyword: str, window: int = 1):
-    sentences = re.split(r'[.!?।]', text)  # basic sentence split, customize if needed
-    matched = []
-
-    for i, sentence in enumerate(sentences):
-        if keyword in sentence:
-            start = max(i - window, 0)
-            end = min(i + window + 1, len(sentences))
-            matched = sentences[start:end]
-            break  # Only use first match
-
-    return ' '.join(matched).strip() if matched else None
+# Constants
+MAX_TOKENS = 512
+CHUNK_CHAR_SIZE = 400  # safe size for tokenizer to avoid token overflow
+OVERLAP = 100
 
 @receiver(post_save, sender=NewsDetails)
 def analyze_sentiment_per_keyword(sender, instance, created, **kwargs):
@@ -30,41 +24,67 @@ def analyze_sentiment_per_keyword(sender, instance, created, **kwargs):
         return
 
     description = instance.description
-    all_keywords = Keyword.objects.all()
+    title = instance.title or ""
+    keywords = Keyword.objects.all()
 
-    for keyword in all_keywords:
-        keyword_text = keyword.name.strip()
+    for keyword in keywords:
+        keyword_text = keyword.name
 
-        # Extract focused context around the keyword
-        context = extract_relevant_sentences(description, keyword_text, window=1)
-        if not context:
-            continue  # Keyword not present or no usable context
+        if keyword_text not in description:
+            continue
 
+        # Split the description into chunks with overlap
+        chunks = []
+        text_len = len(description)
+        i = 0
+        while i < text_len:
+            chunk = description[i:i+CHUNK_CHAR_SIZE]
+            if keyword_text in chunk:
+                chunks.append(chunk)
+            i += CHUNK_CHAR_SIZE - OVERLAP
+
+        if not chunks:
+            print(f"⚠️ Skipped '{keyword_text}' — not found in any chunk")
+            continue
+
+        # Collect scores across chunks
+        pos_scores, neg_scores, neu_scores = [], [], []
+
+        for chunk in chunks:
+            inputs = tokenizer(chunk, return_tensors="pt", truncation=True, max_length=MAX_TOKENS)
+            with torch.no_grad():
+                outputs = model(**inputs)
+                scores = torch.nn.functional.softmax(outputs.logits, dim=1).numpy()[0]
+                neg_scores.append(scores[0])
+                neu_scores.append(scores[1])
+                pos_scores.append(scores[2])
+
+        # Average all scores
+        avg_neg = float(np.mean(neg_scores))
+        avg_neu = float(np.mean(neu_scores))
+        avg_pos = float(np.mean(pos_scores))
+
+        score_dict = {'negative': avg_neg, 'neutral': avg_neu, 'positive': avg_pos}
+        final_label = max(score_dict, key=score_dict.get)
+        final_score = score_dict[final_label]
+
+        # Save to DB
         try:
-            result = sentiment_pipeline(context)[0]  # Example: {'label': 'POSITIVE', 'score': 0.85}
-
-            label = result['label'].lower()  # 'positive', 'neutral', or 'negative'
-            score = result['score']
-
-            positive_score = score if label == 'positive' else 0
-            negative_score = score if label == 'negative' else 0
-            neutral_score = score if label == 'neutral' else 0
-
             SentimentResults.objects.update_or_create(
                 news=instance,
                 keyword=keyword,
                 defaults={
-                    'title': instance.title,
+                    'title': title,
                     'website_name': instance.website_name,
                     'category': instance.category,
                     'processed_at': timezone.now(),
-                    'sentiment_label': label,
-                    'sentiment_score': score,
-                    'positive_score': positive_score,
-                    'negative_score': negative_score,
-                    'neutral_score': neutral_score,
+                    'sentiment_label': final_label,
+                    'sentiment_score': final_score,
+                    'positive_score': avg_pos,
+                    'negative_score': avg_neg,
+                    'neutral_score': avg_neu,
                 }
             )
-
+            print(f"✅ Saved sentiment for keyword '{keyword_text}' → {final_label} ({final_score:.3f})")
         except Exception as e:
-            print(f"❌ Error analyzing keyword '{keyword_text}': {e}")
+            print(f"❌ DB save failed for keyword '{keyword_text}': {e}")
